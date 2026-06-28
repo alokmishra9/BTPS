@@ -369,6 +369,53 @@
             border: 1px solid rgba(245, 158, 11, 0.2);
         }
 
+        /* Status Badge Styles */
+        .status-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: white;
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+        }
+        .status-select.status-NEW {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+        .status-select.status-CONTACTED {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+            border-color: rgba(245, 158, 11, 0.4);
+        }
+        .status-select.status-ENROLLED {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+        .status-select.status-CLOSED {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--accent-rose);
+            border-color: rgba(244, 63, 94, 0.4);
+        }
+        .notes-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .notes-input:focus, .notes-input:hover {
+            border-color: var(--border-color);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
         .timestamp {
             font-size: 0.85rem;
             color: var(--text-secondary);
@@ -542,29 +589,29 @@
                 <div id="stat-total" class="stat-value">0</div>
                 <div class="stat-desc">Submissions recorded</div>
             </div>
-            <div class="stat-card" style="--accent-color: var(--accent-blue);">
+            <div class="stat-card" style="--accent-color: var(--accent-cyan);">
                 <div class="stat-header">
-                    <span>Java Specializations</span>
-                    <iconify-icon icon="lucide:code-2" class="stat-icon"></iconify-icon>
+                    <span>New Leads</span>
+                    <iconify-icon icon="lucide:sparkles" class="stat-icon"></iconify-icon>
                 </div>
-                <div id="stat-java" class="stat-value">0</div>
-                <div class="stat-desc">Java Expert & Full Stack</div>
+                <div id="stat-new" class="stat-value">0</div>
+                <div class="stat-desc">Pending review</div>
+            </div>
+            <div class="stat-card" style="--accent-color: var(--accent-amber);">
+                <div class="stat-header">
+                    <span>Contacted</span>
+                    <iconify-icon icon="lucide:phone-call" class="stat-icon"></iconify-icon>
+                </div>
+                <div id="stat-contacted" class="stat-value">0</div>
+                <div class="stat-desc">In follow-up</div>
             </div>
             <div class="stat-card" style="--accent-color: var(--accent-emerald);">
                 <div class="stat-header">
-                    <span>MERN Stack</span>
-                    <iconify-icon icon="lucide:layers" class="stat-icon"></iconify-icon>
+                    <span>Enrolled</span>
+                    <iconify-icon icon="lucide:check-circle-2" class="stat-icon"></iconify-icon>
                 </div>
-                <div id="stat-mern" class="stat-value">0</div>
-                <div class="stat-desc">MERN Stack + Gen AI</div>
-            </div>
-            <div class="stat-card" style="--accent-color: var(--accent-rose);">
-                <div class="stat-header">
-                    <span>Cyber Security</span>
-                    <iconify-icon icon="lucide:shield" class="stat-icon"></iconify-icon>
-                </div>
-                <div id="stat-cyber" class="stat-value">0</div>
-                <div class="stat-desc">Security + Gen AI track</div>
+                <div id="stat-enrolled" class="stat-value">0</div>
+                <div class="stat-desc">Confirmed admissions</div>
             </div>
         </section>
 
@@ -572,7 +619,16 @@
             <div class="search-filters">
                 <div class="input-group">
                     <iconify-icon icon="lucide:search"></iconify-icon>
-                    <input type="text" id="searchInput" placeholder="Search by name, email, phone...">
+                    <input type="text" id="searchInput" placeholder="Search by name, email, phone, notes...">
+                </div>
+                <div style="min-width: 170px;">
+                    <select id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="NEW">NEW</option>
+                        <option value="CONTACTED">CONTACTED</option>
+                        <option value="ENROLLED">ENROLLED</option>
+                        <option value="CLOSED">CLOSED</option>
+                    </select>
                 </div>
                 <div style="min-width: 220px;">
                     <select id="courseFilter">
@@ -613,12 +669,14 @@
                 <table id="leadsTable">
                     <thead>
                         <tr>
-                            <th style="width: 80px;">ID</th>
+                            <th style="width: 70px;">ID</th>
                             <th>Student Details</th>
                             <th>Contact Info</th>
                             <th>Specialization</th>
+                            <th style="width: 130px;">Status</th>
+                            <th style="width: 200px;">Remarks / Notes</th>
                             <th>Applied At</th>
-                            <th style="width: 80px; text-align: center;">Actions</th>
+                            <th style="width: 70px; text-align: center;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -642,6 +700,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchLeads();
             document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('statusFilter').addEventListener('change', applyFilters);
             document.getElementById('courseFilter').addEventListener('change', applyFilters);
             document.getElementById('exportBtn').addEventListener('click', exportCSV);
         });
@@ -701,13 +760,13 @@
         function calculateStats() {
             document.getElementById('stat-total').innerText = allLeads.length;
 
-            const javaLeads = allLeads.filter(l => l.course && (l.course.includes('Java') || l.course.includes('Spring'))).length;
-            const mernLeads = allLeads.filter(l => l.course && l.course.includes('MERN')).length;
-            const cyberLeads = allLeads.filter(l => l.course && l.course.includes('Cyber')).length;
+            const newLeads = allLeads.filter(l => !l.status || l.status === 'NEW').length;
+            const contactedLeads = allLeads.filter(l => l.status === 'CONTACTED').length;
+            const enrolledLeads = allLeads.filter(l => l.status === 'ENROLLED').length;
 
-            document.getElementById('stat-java').innerText = javaLeads;
-            document.getElementById('stat-mern').innerText = mernLeads;
-            document.getElementById('stat-cyber').innerText = cyberLeads;
+            document.getElementById('stat-new').innerText = newLeads;
+            document.getElementById('stat-contacted').innerText = contactedLeads;
+            document.getElementById('stat-enrolled').innerText = enrolledLeads;
         }
 
         function renderTable(leads) {
@@ -732,6 +791,7 @@
                 else if (c.includes('Data')) courseClass = 'tag-data';
 
                 const formattedId = lead.id ? (typeof lead.id === 'number' ? `DB-${lead.id}` : lead.id) : 'LOCAL';
+                const currentStatus = lead.status || 'NEW';
 
                 let dateStr = 'No date';
                 if (lead.timestamp) {
@@ -755,6 +815,17 @@
                         </div>
                     </td>
                     <td><span class="course-tag ${courseClass}">${escapeHtml(lead.course || 'Unspecified')}</span></td>
+                    <td>
+                        <select class="status-select status-${currentStatus}" onchange="updateLeadStatus(${typeof lead.id === 'number' ? lead.id : `'${lead.id}'`}, this.value)">
+                            <option value="NEW" ${currentStatus === 'NEW' ? 'selected' : ''}>NEW</option>
+                            <option value="CONTACTED" ${currentStatus === 'CONTACTED' ? 'selected' : ''}>CONTACTED</option>
+                            <option value="ENROLLED" ${currentStatus === 'ENROLLED' ? 'selected' : ''}>ENROLLED</option>
+                            <option value="CLOSED" ${currentStatus === 'CLOSED' ? 'selected' : ''}>CLOSED</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="notes-input" placeholder="Add remarks..." value="${escapeHtml(lead.notes || '')}" onchange="updateLeadNotes(${typeof lead.id === 'number' ? lead.id : `'${lead.id}'`}, this.value)">
+                    </td>
                     <td><span class="timestamp">${dateStr}</span></td>
                     <td style="text-align: center;">
                         <button class="action-btn" onclick="deleteLead(${typeof lead.id === 'number' ? lead.id : `'${lead.id}'`})" title="Delete Lead">
@@ -764,6 +835,53 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        window.updateLeadStatus = function(id, newStatus) {
+            const lead = allLeads.find(l => l.id === id);
+            if (lead) lead.status = newStatus;
+            calculateStats();
+
+            if (!isOffline && typeof id === 'number') {
+                fetch(`/api/enquiries/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Status update failed");
+                    showToast(`Status updated to ${newStatus}`, "success");
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Failed to update status on server", "error");
+                });
+            } else {
+                showToast(`Status updated locally to ${newStatus}`, "success");
+            }
+        }
+
+        window.updateLeadNotes = function(id, newNotes) {
+            const lead = allLeads.find(l => l.id === id);
+            if (lead) lead.notes = newNotes;
+
+            if (!isOffline && typeof id === 'number') {
+                fetch(`/api/enquiries/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes: newNotes })
+                })
+                .then(res => {
+                    if (!res.ok) throw new Error("Notes update failed");
+                    showToast("Remarks saved", "success");
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("Failed to save remarks on server", "error");
+                });
+            } else {
+                showToast("Remarks saved locally", "success");
+            }
         }
 
         function escapeHtml(text) {
@@ -779,17 +897,20 @@
 
         function applyFilters() {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const statusVal = document.getElementById('statusFilter').value;
             const courseVal = document.getElementById('courseFilter').value;
 
             const filtered = allLeads.filter(lead => {
                 const matchesSearch = 
                     (lead.name && lead.name.toLowerCase().includes(searchVal)) ||
                     (lead.email && lead.email.toLowerCase().includes(searchVal)) ||
-                    (lead.phone && lead.phone.toLowerCase().includes(searchVal));
+                    (lead.phone && lead.phone.toLowerCase().includes(searchVal)) ||
+                    (lead.notes && lead.notes.toLowerCase().includes(searchVal));
                 
+                const matchesStatus = !statusVal || (lead.status || 'NEW') === statusVal;
                 const matchesCourse = !courseVal || lead.course === courseVal;
 
-                return matchesSearch && matchesCourse;
+                return matchesSearch && matchesStatus && matchesCourse;
             });
 
             renderTable(filtered);
@@ -832,15 +953,18 @@
 
         function exportCSV() {
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const statusVal = document.getElementById('statusFilter').value;
             const courseVal = document.getElementById('courseFilter').value;
 
             const filtered = allLeads.filter(lead => {
                 const matchesSearch = 
                     (lead.name && lead.name.toLowerCase().includes(searchVal)) ||
                     (lead.email && lead.email.toLowerCase().includes(searchVal)) ||
-                    (lead.phone && lead.phone.toLowerCase().includes(searchVal));
+                    (lead.phone && lead.phone.toLowerCase().includes(searchVal)) ||
+                    (lead.notes && lead.notes.toLowerCase().includes(searchVal));
+                const matchesStatus = !statusVal || (lead.status || 'NEW') === statusVal;
                 const matchesCourse = !courseVal || lead.course === courseVal;
-                return matchesSearch && matchesCourse;
+                return matchesSearch && matchesStatus && matchesCourse;
             });
 
             if (filtered.length === 0) {
@@ -849,7 +973,7 @@
             }
 
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "ID,Name,Phone,Email,Course,Timestamp\n";
+            csvContent += "ID,Name,Phone,Email,Course,Status,Remarks,Timestamp\n";
 
             filtered.forEach(l => {
                 const row = [
@@ -858,6 +982,8 @@
                     `"${(l.phone || '').replace(/"/g, '""')}"`,
                     `"${(l.email || '').replace(/"/g, '""')}"`,
                     `"${(l.course || '').replace(/"/g, '""')}"`,
+                    `"${(l.status || 'NEW').replace(/"/g, '""')}"`,
+                    `"${(l.notes || '').replace(/"/g, '""')}"`,
                     `"${(l.timestamp || '').replace(/"/g, '""')}"`
                 ].join(",");
                 csvContent += row + "\n";

@@ -27,6 +27,11 @@ public class EnquiryController {
         return enquiryService.getAllEnquiries();
     }
 
+    @PutMapping("/{id}")
+    public Enquiry updateEnquiry(@PathVariable Long id, @RequestBody Enquiry enquiry) {
+        return enquiryService.updateEnquiry(id, enquiry);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEnquiry(@PathVariable Long id) {
         enquiryService.deleteEnquiry(id);

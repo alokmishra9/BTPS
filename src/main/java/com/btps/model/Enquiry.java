@@ -34,16 +34,21 @@ public class Enquiry {
     @NotBlank(message = "Course selection is required")
     private String course;
     
+    private String status = "NEW";
+    private String notes;
+    
     private LocalDateTime timestamp;
 
     // Constructors
     public Enquiry() {}
 
-    public Enquiry(String name, String phone, String email, String course, LocalDateTime timestamp) {
+    public Enquiry(String name, String phone, String email, String course, String status, String notes, LocalDateTime timestamp) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.course = course;
+        this.status = status != null ? status : "NEW";
+        this.notes = notes;
         this.timestamp = timestamp;
     }
 
@@ -86,6 +91,22 @@ public class Enquiry {
 
     public void setCourse(String course) {
         this.course = course;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getNotes() {
+        return notes;
+    }
+
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
 
     public LocalDateTime getTimestamp() {

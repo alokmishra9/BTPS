@@ -18,12 +18,30 @@ public class EnquiryServiceImpl implements EnquiryService {
     @Override
     public Enquiry createEnquiry(Enquiry enquiry) {
         enquiry.setTimestamp(LocalDateTime.now());
+        if (enquiry.getStatus() == null || enquiry.getStatus().isBlank()) {
+            enquiry.setStatus("NEW");
+        }
         return enquiryRepository.save(enquiry);
     }
 
     @Override
     public List<Enquiry> getAllEnquiries() {
         return enquiryRepository.findAll();
+    }
+
+    @Override
+    public Enquiry updateEnquiry(Long id, Enquiry enquiryDetails) {
+        Enquiry existing = enquiryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Enquiry not found with ID: " + id));
+        
+        if (enquiryDetails.getName() != null) existing.setName(enquiryDetails.getName());
+        if (enquiryDetails.getPhone() != null) existing.setPhone(enquiryDetails.getPhone());
+        if (enquiryDetails.getEmail() != null) existing.setEmail(enquiryDetails.getEmail());
+        if (enquiryDetails.getCourse() != null) existing.setCourse(enquiryDetails.getCourse());
+        if (enquiryDetails.getStatus() != null) existing.setStatus(enquiryDetails.getStatus());
+        if (enquiryDetails.getNotes() != null) existing.setNotes(enquiryDetails.getNotes());
+        
+        return enquiryRepository.save(existing);
     }
 
     @Override
